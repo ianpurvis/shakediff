@@ -15,6 +15,10 @@ const { structuredPatch } = require('diff')
 
 
 async function main(argv) {
+
+  if (argv.length < 4)
+    throw 'usage: shakediff <module> <export list>'
+
   const [ modulePath, ...exports ] = argv.slice(2);
   const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
   const testCode = scaffoldTest(exports)
