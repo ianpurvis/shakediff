@@ -1,0 +1,21 @@
+{
+  "name": "shakediff",
+  "version": "0.1.0",
+  "description": "Tree shaking diff for ES6 and ES2015 modules",
+  "type": "module",
+  "main": "shakediff.js",
+  "author": "Ian Purvis <ian@purvisresearch.com>",
+  "license": "MIT",
+  "bin": {
+    "shakediff": "shakediff.js"
+  },
+  "files": [
+    "shakediff.js"
+  ],
+  "dependencies": {
+    "@rollup/plugin-virtual": "^2.0.3",
+    "colors": "^1.4.0",
+    "diff": "^4.0.2",
+    "rollup": "^2.26.6"
+  }
+}
