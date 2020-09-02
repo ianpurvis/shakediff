@@ -14,8 +14,6 @@
   ],
   "dependencies": {
     "@rollup/plugin-virtual": "^2.0.3",
-    "colors": "^1.4.0",
-    "diff": "^4.0.2",
     "rollup": "^2.26.6"
   }
 }
