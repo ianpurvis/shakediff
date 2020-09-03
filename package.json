@@ -1,7 +1,7 @@
 {
   "name": "shakediff",
   "version": "0.1.0",
-  "description": "Tree shaking diff for ES6 and ES2015 modules",
+  "description": "Shake an es6 module for named exports and diff the result",
   "type": "module",
   "main": "shakediff.js",
   "author": "Ian Purvis <ian@purvisresearch.com>",
