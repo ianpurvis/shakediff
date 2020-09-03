@@ -6,8 +6,7 @@ import { readFile, unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import minimist from 'minimist'
 import { basename, join } from 'path'
-import { rollup } from 'rollup'
-import virtual from '@rollup/plugin-virtual'
+import { roll } from './src/roll.js'
 
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
 const HELP = `
@@ -77,25 +76,11 @@ async function main(argv) {
 
   const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
   const testCode = scaffoldTest(exports)
-  const bundle = await rollup({
-    input: 'testCode',
-    plugins: [
-      virtual({
-        moduleCode,
-        testCode
-      })
-    ],
-    treeshake: true
-  })
-  const { output } = await bundle.generate({
-    format: 'esm',
-    preserveModules: true
-  })
-  const chunk = output.find(chunk => chunk.name == '_virtual:moduleCode')
-  const chunkBuffer = Buffer.from(chunk.code, 'utf8')
-  const chunkHash = sha1(chunkBuffer).slice(0, 6)
-  const tempPath = join(tmpdir(), `${chunkHash}_${basename(modulePath)}`)
-  await writeFile(tempPath, chunkBuffer)
+  const shakenCode = await roll(moduleCode, testCode)
+  const buffer = Buffer.from(shakenCode, 'utf8')
+  const shorthash = sha1(buffer).slice(0, 6)
+  const tempPath = join(tmpdir(), `${shorthash}_${basename(modulePath)}`)
+  await writeFile(tempPath, buffer)
   const exitCode = await spiff(tool, modulePath, tempPath)
   await unlink(tempPath)
 
