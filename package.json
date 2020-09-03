@@ -6,6 +6,10 @@
   "main": "shakediff.js",
   "author": "Ian Purvis <ian@purvisresearch.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ianpurvis/shakediff.git"
+  },
   "bin": {
     "shakediff": "shakediff.js"
   },
