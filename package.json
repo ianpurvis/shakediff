@@ -18,6 +18,7 @@
   ],
   "dependencies": {
     "@rollup/plugin-virtual": "^2.0.3",
+    "memory-fs": "^0.5.0",
     "minimist": "^1.2.5",
     "rollup": "^2.26.6",
     "webpack": "^4.44.1"
