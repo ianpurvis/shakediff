@@ -25,7 +25,7 @@
     "es6",
     "tree-shaking",
     "modules",
-    "bundlers"
+    "bundlers",
     "rollup",
     "diff"
   ]
