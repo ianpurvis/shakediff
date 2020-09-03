@@ -11,10 +11,48 @@ import virtual from '@rollup/plugin-virtual'
 
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
 const HELP = `
-usage: shakediff [options] <filename> <export list>
-    -t <tool>, --tool=<tool>    diff with <tool>. default is "diff"
-    -h, --help                  display this help and exit
-`.trim()
+NAME:
+
+    shakediff - shake an es6 module for named exports and diff the result
+
+SYNOPSIS:
+
+    shakediff [options] <module file> <export list>
+
+OPTIONS:
+
+    -t <tool>, --tool=<tool>
+        Diff with the specified <tool>. Default is "diff".
+
+    -h, --help
+        Display this help and exit.
+
+EXAMPLES:
+
+    Shake module.mjs for "foo"
+
+        $ shakediff module.mjs foo
+
+    Shake module.mjs for "foo" and "bar":
+
+        $ shakediff module.mjs foo bar
+
+    Output a unified diff:
+
+        $ shakediff -t "diff -u" module.mjs foo
+
+    Generate a diffstat:
+
+        $ shakediff module.mjs foo | diffstat
+
+    View a diff in gvim:
+
+        $ shakediff -t "gvim -df" module.mjs foo
+
+    View a histogram diff in git:
+
+        $ shakediff -t "git diff --no-index --histogram" module.mjs foo
+`.trimStart()
 
 async function main(argv) {
 
