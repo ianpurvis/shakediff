@@ -11,13 +11,14 @@ import virtual from '@rollup/plugin-virtual'
 
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
 const HELP = `
-usage: shakediff <filename> <export list>
-    -h, --help    display this help and exit
+usage: shakediff [options] <filename> <export list>
+    -t <tool>, --tool=<tool>    diff with <tool>. default is "diff"
+    -h, --help                  display this help and exit
 `.trim()
 
 async function main(argv) {
 
-  const { _: [ modulePath, ...exports ], help, ...unknown } = parseArgs(argv)
+  const { _: [ modulePath, ...exports ], help, tool, ...unknown } = parseArgs(argv)
 
   for (const option in unknown) {
     console.error(`shakediff: invalid option '${option}'\n${ADVICE}`)
@@ -57,16 +58,17 @@ async function main(argv) {
   const chunkHash = sha1(chunkBuffer).slice(0, 6)
   const tempPath = join(tmpdir(), `${chunkHash}_${basename(modulePath)}`)
   await writeFile(tempPath, chunkBuffer)
-  const exitCode = await spiff(modulePath, tempPath)
+  const exitCode = await spiff(tool, modulePath, tempPath)
   await unlink(tempPath)
 
   return exitCode
 }
 
 
-async function spiff(pathA, pathB) {
+async function spiff(tool, pathA, pathB) {
+  const [ command, ...args ] = tool.split(' ')
   return new Promise((resolve, reject) => {
-    spawn('diff', [ pathA, pathB ], { stdio: 'inherit' })
+    spawn(command, [ ...args, pathA, pathB ], { stdio: 'inherit' })
       .once('error', reject)
       .once('close', resolve)
   })
@@ -77,10 +79,17 @@ function parseArgs(argv) {
   const options = {
     alias: {
       h: 'help',
+      t: 'tool',
     },
     boolean: [
       'help',
-    ]
+    ],
+    default: {
+      tool: 'diff'
+    },
+    string: [
+      'tool'
+    ],
   }
   const args = minimist(argv.slice(2), options)
 
