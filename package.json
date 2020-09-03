@@ -19,7 +19,8 @@
   "dependencies": {
     "@rollup/plugin-virtual": "^2.0.3",
     "minimist": "^1.2.5",
-    "rollup": "^2.26.6"
+    "rollup": "^2.26.6",
+    "webpack": "^4.44.1"
   },
   "keywords": [
     "es6",
