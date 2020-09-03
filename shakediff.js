@@ -4,17 +4,38 @@ import { spawn } from 'child_process'
 import { createHash } from 'crypto';
 import { readFile, unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
+import minimist from 'minimist'
 import { basename, join } from 'path'
 import { rollup } from 'rollup'
 import virtual from '@rollup/plugin-virtual'
 
+const ADVICE = "shakediff: Try 'shakediff --help' for more information."
+const HELP = `
+usage: shakediff <filename> <export list>
+    -h, --help    display this help and exit
+`.trim()
 
 async function main(argv) {
 
-  if (argv.length < 4)
-    throw 'usage: shakediff <module> <export list>'
+  const { _: [ modulePath, ...exports ], help, ...unknown } = parseArgs(argv)
 
-  const [ modulePath, ...exports ] = argv.slice(2);
+  for (const option in unknown) {
+    console.error(`shakediff: invalid option '${option}'\n${ADVICE}`)
+    return 2
+  }
+  if (help) {
+    console.log(HELP)
+    return 0
+  }
+  else if (!modulePath) {
+    console.error(`shakediff: missing filename\n${ADVICE}`)
+    return 2
+  }
+  else if (exports.length < 1) {
+    console.error(`shakediff: missing export list\n${ADVICE}`)
+    return 2
+  }
+
   const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
   const testCode = scaffoldTest(exports)
   const bundle = await rollup({
@@ -49,6 +70,23 @@ async function spiff(pathA, pathB) {
       .once('error', reject)
       .once('close', resolve)
   })
+}
+
+
+function parseArgs(argv) {
+  const options = {
+    alias: {
+      h: 'help',
+    },
+    boolean: [
+      'help',
+    ]
+  }
+  const args = minimist(argv.slice(2), options)
+
+  for (const alias in options.alias) delete args[alias]
+
+  return args
 }
 
 
