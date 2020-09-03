@@ -44,3 +44,4 @@ View a histogram diff in git:
 This package is available as open source under the terms of the
 [MIT License](http://opensource.org/licenses/MIT).
 
+[![https://purvisresearch.com](.logo.svg)](https://purvisresearch.com)
