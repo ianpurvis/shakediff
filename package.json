@@ -20,5 +20,13 @@
     "@rollup/plugin-virtual": "^2.0.3",
     "minimist": "^1.2.5",
     "rollup": "^2.26.6"
-  }
+  },
+  "keywords": [
+    "es6",
+    "tree-shaking",
+    "modules",
+    "bundlers"
+    "rollup",
+    "diff"
+  ]
 }
