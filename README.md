@@ -8,6 +8,9 @@ Shake an es6 module for named exports and diff the result.
 
 ## Options:
 
+    -b {rollup|webpack}, --bundler={rollup|webpack}
+        Choose a bundler. Default is "rollup".
+
     -t <tool>, --tool=<tool>
         Diff with the specified <tool>. Default is "diff".
 
@@ -16,13 +19,13 @@ Shake an es6 module for named exports and diff the result.
 
 ## Examples:
 
-Shake module.mjs for "foo":
+Shake module.mjs for "foo" using rollup:
 
     $ shakediff module.mjs foo
 
-Shake module.mjs for "foo" and "bar":
+Shake module.mjs for "foo" and "bar" using webpack:
 
-    $ shakediff module.mjs foo bar
+    $ shakediff -b webpack module.mjs foo bar
 
 Output a unified diff:
 

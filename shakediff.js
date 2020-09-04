@@ -6,8 +6,9 @@ import { readFile, unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import minimist from 'minimist'
 import { basename, join } from 'path'
-import { rollup } from 'rollup'
-import virtual from '@rollup/plugin-virtual'
+import { pack } from './src/pack.js'
+import { roll } from './src/roll.js'
+
 
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
 const HELP = `
@@ -21,6 +22,9 @@ SYNOPSIS:
 
 OPTIONS:
 
+    -b {rollup|webpack}, --bundler={rollup|webpack}
+        Choose a bundler. Default is "rollup".
+
     -t <tool>, --tool=<tool>
         Diff with the specified <tool>. Default is "diff".
 
@@ -29,13 +33,13 @@ OPTIONS:
 
 EXAMPLES:
 
-    Shake module.mjs for "foo"
+    Shake module.mjs for "foo" using rollup:
 
         $ shakediff module.mjs foo
 
-    Shake module.mjs for "foo" and "bar":
+    Shake module.mjs for "foo" and "bar" using webpack:
 
-        $ shakediff module.mjs foo bar
+        $ shakediff -b webpack module.mjs foo bar
 
     Output a unified diff:
 
@@ -56,7 +60,16 @@ EXAMPLES:
 
 async function main(argv) {
 
-  const { _: [ modulePath, ...exports ], help, tool, ...unknown } = parseArgs(argv)
+  const {
+    _: [
+      modulePath,
+      ...exports
+    ],
+    help,
+    bundler,
+    tool,
+    ...unknown
+  } = parseArgs(argv)
 
   for (const option in unknown) {
     console.error(`shakediff: invalid option '${option}'\n${ADVICE}`)
@@ -75,27 +88,15 @@ async function main(argv) {
     return 2
   }
 
+
   const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
   const testCode = scaffoldTest(exports)
-  const bundle = await rollup({
-    input: 'testCode',
-    plugins: [
-      virtual({
-        moduleCode,
-        testCode
-      })
-    ],
-    treeshake: true
-  })
-  const { output } = await bundle.generate({
-    format: 'esm',
-    preserveModules: true
-  })
-  const chunk = output.find(chunk => chunk.name == '_virtual:moduleCode')
-  const chunkBuffer = Buffer.from(chunk.code, 'utf8')
-  const chunkHash = sha1(chunkBuffer).slice(0, 6)
-  const tempPath = join(tmpdir(), `${chunkHash}_${basename(modulePath)}`)
-  await writeFile(tempPath, chunkBuffer)
+  const bundle = bundler == 'rollup' ? roll : pack
+  const shakenCode = await bundle(moduleCode, testCode)
+  const buffer = Buffer.from(shakenCode, 'utf8')
+  const shorthash = sha1(buffer).slice(0, 6)
+  const tempPath = join(tmpdir(), `${shorthash}_${basename(modulePath)}`)
+  await writeFile(tempPath, buffer)
   const exitCode = await spiff(tool, modulePath, tempPath)
   await unlink(tempPath)
 
@@ -116,6 +117,7 @@ async function spiff(tool, pathA, pathB) {
 function parseArgs(argv) {
   const options = {
     alias: {
+      b: 'bundler',
       h: 'help',
       t: 'tool',
     },
@@ -123,9 +125,11 @@ function parseArgs(argv) {
       'help',
     ],
     default: {
+      bundler: 'rollup',
       tool: 'diff'
     },
     string: [
+      'bundler',
       'tool'
     ],
   }
