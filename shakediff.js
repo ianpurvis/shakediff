@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process'
-import { createHash } from 'crypto';
 import { readFile, unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import minimist from 'minimist'
 import { basename, join } from 'path'
 import { pack } from './src/pack.js'
 import { roll } from './src/roll.js'
+import { hashObject } from './src/hash.js'
 
 
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
@@ -94,7 +94,7 @@ async function main(argv) {
   const bundle = bundler == 'rollup' ? roll : pack
   const shakenCode = await bundle(moduleCode, testCode)
   const buffer = Buffer.from(shakenCode, 'utf8')
-  const shorthash = sha1(buffer).slice(0, 6)
+  const shorthash = hashObject(buffer).slice(0, 6)
   const tempPath = join(tmpdir(), `${shorthash}_${basename(modulePath)}`)
   await writeFile(tempPath, buffer)
   const exitCode = await spiff(tool, modulePath, tempPath)
@@ -144,17 +144,6 @@ function parseArgs(argv) {
 function scaffoldTest(exports) {
   const exportList = exports.join(', ')
   return `import { ${exportList} } from 'moduleCode'; export { ${exportList} }`
-}
-
-
-function sha1(buffer) {
-  // Simulates git-hash-object (https://stackoverflow.com/q/552659)
-  const hash = createHash('sha1')
-  hash.update('blob ')
-  hash.update(buffer.length.toString())
-  hash.update('\0')
-  hash.update(buffer)
-  return hash.digest('hex')
 }
 
 
