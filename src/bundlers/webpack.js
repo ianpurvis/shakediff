@@ -2,7 +2,7 @@ import memoryfs from 'memory-fs'
 import TerserPlugin from 'terser-webpack-plugin'
 import webpack from 'webpack'
 
-async function pack(moduleCode, testCode) {
+async function bundle(moduleCode, testCode) {
 
   // const volume = new memfs.Volume()
   // const fslike = memfs.createFsFromVolume(volume)
@@ -87,4 +87,4 @@ async function pack(moduleCode, testCode) {
   return chunkCode
 }
 
-export { pack }
+export { bundle as webpack }

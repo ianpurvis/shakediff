@@ -1,7 +1,7 @@
 import { rollup } from 'rollup'
 import virtual from '@rollup/plugin-virtual'
 
-async function roll(moduleCode, testCode) {
+async function bundle(moduleCode, testCode) {
   const bundle = await rollup({
     input: 'testCode',
     plugins: [
@@ -21,4 +21,4 @@ async function roll(moduleCode, testCode) {
   return chunk.code
 }
 
-export { roll }
+export { bundle as rollup }

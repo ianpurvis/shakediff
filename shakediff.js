@@ -5,8 +5,8 @@ import { readFile, unlink, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import minimist from 'minimist'
 import { basename, join } from 'path'
-import { pack } from './src/pack.js'
-import { roll } from './src/roll.js'
+import { rollup } from './src/bundlers/rollup.js'
+import { webpack } from './src/bundlers/webpack.js'
 import { hashObject } from './src/hash.js'
 
 
@@ -58,6 +58,12 @@ EXAMPLES:
         $ shakediff -t "git diff --no-index --histogram" module.mjs foo
 `.trimStart()
 
+const BUNDLERS = {
+  rollup,
+  webpack
+}
+
+
 async function main(argv) {
 
   const {
@@ -87,12 +93,14 @@ async function main(argv) {
     console.error(`shakediff: missing export list\n${ADVICE}`)
     return 2
   }
-
+  else if (!BUNDLERS[bundler]) {
+    console.error(`shakediff: invalid bundler '${bundler}'\n${ADVICE}`)
+    return 2
+  }
 
   const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
   const testCode = scaffoldTest(exports)
-  const bundle = bundler == 'rollup' ? roll : pack
-  const shakenCode = await bundle(moduleCode, testCode)
+  const shakenCode = await BUNDLERS[bundler](moduleCode, testCode)
   const buffer = Buffer.from(shakenCode, 'utf8')
   const shorthash = hashObject(buffer).slice(0, 6)
   const tempPath = join(tmpdir(), `${shorthash}_${basename(modulePath)}`)
