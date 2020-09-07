@@ -54,7 +54,8 @@ async function bundle(entryPath, modulePath) {
               return !module.resource.endsWith(entryPath)
             },
           }
-        }
+        },
+        minSize: 0,
       },
       usedExports: true,
     },
