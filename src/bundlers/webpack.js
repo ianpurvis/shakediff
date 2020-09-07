@@ -1,20 +1,15 @@
-import memoryfs from 'memory-fs'
+import MemoryFileSystem from 'memory-fs'
+import { basename, resolve } from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
 import webpack from 'webpack'
 
-async function pack(moduleCode, testCode) {
+async function bundle(entryPath, modulePath) {
 
-  // const volume = new memfs.Volume()
-  // const fslike = memfs.createFsFromVolume(volume)
-
-  const fslike = new memoryfs()
-  const moduleCodePath = '/moduleCode.js'
-  const testCodePath = '/testCode.js'
-  fslike.writeFileSync(moduleCodePath, moduleCode)
-  fslike.writeFileSync(testCodePath, testCode)
+  const chunkFile = basename(modulePath)
+  const outputDir = '/'
 
   const compiler = webpack({
-    entry: testCodePath,
+    entry: entryPath,
     optimization: {
       concatenateModules: true,
       minimize: true,
@@ -52,27 +47,25 @@ async function pack(moduleCode, testCode) {
       ],
       splitChunks: {
         cacheGroups: {
-          moduleCode: {
-            test: moduleCodePath,
-            name: 'moduleCode',
+          nonEntry: {
             chunks: 'all',
+            filename: chunkFile,
+            test(module) {
+              return !module.resource.endsWith(entryPath)
+            },
           }
         }
       },
       usedExports: true,
     },
     output: {
-      chunkFilename: 'moduleCode.js',
-      filename: 'testCode.js',
-      path: '/',
-    },
-    resolve: {
-      alias: { moduleCode: moduleCodePath }
+      path: outputDir
     },
     target: 'node',
   })
-  compiler.inputFileSystem =
-    compiler.outputFileSystem = fslike
+
+  const memfs = new MemoryFileSystem()
+  compiler.outputFileSystem = memfs
 
   const stats = await new Promise((resolve, reject) => {
     compiler.run((error, stats) =>
@@ -82,9 +75,9 @@ async function pack(moduleCode, testCode) {
   if (stats.hasErrors())
     throw new Error(stats.toJson().errors)
 
-  const chunkCode = fslike.readFileSync(moduleCodePath, { encoding: 'utf8' })
-
+  const chunkPath = resolve(outputDir, chunkFile)
+  const chunkCode = memfs.readFileSync(chunkPath, { encoding: 'utf8' })
   return chunkCode
 }
 
-export { pack }
+export { bundle as webpack }

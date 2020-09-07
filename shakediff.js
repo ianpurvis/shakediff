@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
-import { spawn } from 'child_process'
-import { createHash } from 'crypto';
-import { readFile, unlink, writeFile } from 'fs/promises'
-import { tmpdir } from 'os'
+import { mkdir, rmdir, writeFile } from 'fs/promises'
 import minimist from 'minimist'
-import { basename, join } from 'path'
-import { pack } from './src/pack.js'
-import { roll } from './src/roll.js'
+import { basename, join, resolve } from 'path'
+import { rollup } from './src/bundlers/rollup.js'
+import { webpack } from './src/bundlers/webpack.js'
+import { hashObject } from './src/hash.js'
+import { scaffoldEntry } from './src/scaffold.js'
+import { spiff } from './src/spiff.js'
+import { tmpdir } from './src/tmpdir.js'
 
 
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
@@ -58,11 +59,17 @@ EXAMPLES:
         $ shakediff -t "git diff --no-index --histogram" module.mjs foo
 `.trimStart()
 
+const BUNDLERS = {
+  rollup,
+  webpack
+}
+
+
 async function main(argv) {
 
   const {
     _: [
-      modulePath,
+      moduleFile,
       ...exports
     ],
     help,
@@ -79,38 +86,43 @@ async function main(argv) {
     console.log(HELP)
     return 0
   }
-  else if (!modulePath) {
-    console.error(`shakediff: missing filename\n${ADVICE}`)
+  else if (!moduleFile) {
+    console.error(`shakediff: missing module file\n${ADVICE}`)
     return 2
   }
   else if (exports.length < 1) {
     console.error(`shakediff: missing export list\n${ADVICE}`)
     return 2
   }
+  else if (!BUNDLERS[bundler]) {
+    console.error(`shakediff: invalid bundler '${bundler}'\n${ADVICE}`)
+    return 2
+  }
 
+  const tempDir = tmpdir()
+  await mkdir(tempDir)
 
-  const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
-  const testCode = scaffoldTest(exports)
-  const bundle = bundler == 'rollup' ? roll : pack
-  const shakenCode = await bundle(moduleCode, testCode)
-  const buffer = Buffer.from(shakenCode, 'utf8')
-  const shorthash = sha1(buffer).slice(0, 6)
-  const tempPath = join(tmpdir(), `${shorthash}_${basename(modulePath)}`)
-  await writeFile(tempPath, buffer)
-  const exitCode = await spiff(tool, modulePath, tempPath)
-  await unlink(tempPath)
+  try {
+    const modulePath = resolve(moduleFile)
 
-  return exitCode
-}
+    const entryCode = scaffoldEntry(modulePath, exports)
+    const entryBuffer = Buffer.from(entryCode, 'utf8')
+    const entryHash = hashObject(entryBuffer).slice(0, 6)
+    const entryPath = join(tempDir, `${entryHash}_testCode.js`)
+    await writeFile(entryPath, entryBuffer)
 
+    const shakenCode = await BUNDLERS[bundler](entryPath, modulePath)
+    const shakenBuffer = Buffer.from(shakenCode, 'utf8')
+    const shakenHash = hashObject(shakenBuffer).slice(0, 6)
+    const shakenPath = join(tempDir, `${shakenHash}_${basename(modulePath)}`)
+    await writeFile(shakenPath, shakenBuffer)
 
-async function spiff(tool, pathA, pathB) {
-  const [ command, ...args ] = tool.split(' ')
-  return new Promise((resolve, reject) => {
-    spawn(command, [ ...args, pathA, pathB ], { stdio: 'inherit' })
-      .once('error', reject)
-      .once('close', resolve)
-  })
+    const exitCode = await spiff(tool, modulePath, shakenPath)
+    return exitCode
+  }
+  finally {
+    await rmdir(tempDir, { recursive: true })
+  }
 }
 
 
@@ -138,23 +150,6 @@ function parseArgs(argv) {
   for (const alias in options.alias) delete args[alias]
 
   return args
-}
-
-
-function scaffoldTest(exports) {
-  const exportList = exports.join(', ')
-  return `import { ${exportList} } from 'moduleCode'; export { ${exportList} }`
-}
-
-
-function sha1(buffer) {
-  // Simulates git-hash-object (https://stackoverflow.com/q/552659)
-  const hash = createHash('sha1')
-  hash.update('blob ')
-  hash.update(buffer.length.toString())
-  hash.update('\0')
-  hash.update(buffer)
-  return hash.digest('hex')
 }
 
 
