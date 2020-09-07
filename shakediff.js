@@ -2,7 +2,8 @@
 
 import { mkdir, rmdir, writeFile } from 'fs/promises'
 import minimist from 'minimist'
-import { basename, join, resolve } from 'path'
+import { basename, join, relative, resolve } from 'path'
+import { parcel } from './src/bundlers/parcel.js'
 import { rollup } from './src/bundlers/rollup.js'
 import { webpack } from './src/bundlers/webpack.js'
 import { hashObject } from './src/hash.js'
@@ -23,7 +24,7 @@ SYNOPSIS:
 
 OPTIONS:
 
-    -b {rollup|webpack}, --bundler={rollup|webpack}
+    -b {parcel|rollup|webpack}, --bundler={parcel|rollup|webpack}
         Choose a bundler. Default is "rollup".
 
     -t <tool>, --tool=<tool>
@@ -60,10 +61,10 @@ EXAMPLES:
 `.trimStart()
 
 const BUNDLERS = {
+  parcel,
   rollup,
   webpack
 }
-
 
 async function main(argv) {
 
@@ -103,12 +104,15 @@ async function main(argv) {
   await mkdir(tempDir)
 
   try {
-    const modulePath = resolve(moduleFile)
+    // Use a relative module path for parcel to bypass its absolute path mapping:
+    const modulePath = bundler === 'parcel'
+      ? relative(tempDir, moduleFile)
+      : resolve(moduleFile)
 
     const entryCode = scaffoldEntry(modulePath, exports)
     const entryBuffer = Buffer.from(entryCode, 'utf8')
     const entryHash = hashObject(entryBuffer).slice(0, 6)
-    const entryPath = join(tempDir, `${entryHash}_testCode.js`)
+    const entryPath = join(tempDir, `${entryHash}_entry.js`)
     await writeFile(entryPath, entryBuffer)
 
     const shakenCode = await BUNDLERS[bundler](entryPath, modulePath)
@@ -124,7 +128,6 @@ async function main(argv) {
     await rmdir(tempDir, { recursive: true })
   }
 }
-
 
 function parseArgs(argv) {
   const options = {
