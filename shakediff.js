@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import { spawn } from 'child_process'
 import { mkdir, rmdir, writeFile } from 'fs/promises'
 import minimist from 'minimist'
 import { basename, join, resolve } from 'path'
 import { rollup } from './src/bundlers/rollup.js'
 import { webpack } from './src/bundlers/webpack.js'
 import { hashObject } from './src/hash.js'
+import { spiff } from './src/spiff.js'
 import { tmpdir } from './src/tmpdir.js'
 
 
@@ -122,16 +122,6 @@ async function main(argv) {
   finally {
     await rmdir(tempDir, { recursive: true })
   }
-}
-
-
-async function spiff(tool, pathA, pathB) {
-  const [ command, ...args ] = tool.split(' ')
-  return new Promise((resolve, reject) => {
-    spawn(command, [ ...args, pathA, pathB ], { stdio: 'inherit' })
-      .once('error', reject)
-      .once('close', resolve)
-  })
 }
 
 
