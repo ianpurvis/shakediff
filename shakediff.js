@@ -6,6 +6,7 @@ import { basename, join, resolve } from 'path'
 import { rollup } from './src/bundlers/rollup.js'
 import { webpack } from './src/bundlers/webpack.js'
 import { hashObject } from './src/hash.js'
+import { scaffoldEntry } from './src/scaffold.js'
 import { spiff } from './src/spiff.js'
 import { tmpdir } from './src/tmpdir.js'
 
@@ -104,7 +105,7 @@ async function main(argv) {
   try {
     const modulePath = resolve(moduleFile)
 
-    const entryCode = scaffoldTest(modulePath, exports)
+    const entryCode = scaffoldEntry(modulePath, exports)
     const entryBuffer = Buffer.from(entryCode, 'utf8')
     const entryHash = hashObject(entryBuffer).slice(0, 6)
     const entryPath = join(tempDir, `${entryHash}_testCode.js`)
@@ -149,12 +150,6 @@ function parseArgs(argv) {
   for (const alias in options.alias) delete args[alias]
 
   return args
-}
-
-
-function scaffoldTest(modulePath, exports) {
-  const exportList = exports.join(', ')
-  return `import { ${exportList} } from '${modulePath}'; export { ${exportList} }`
 }
 
 
