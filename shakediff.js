@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process'
-import { readFile, unlink, writeFile } from 'fs/promises'
-import { tmpdir } from 'os'
+import { mkdir, readFile, rmdir, writeFile } from 'fs/promises'
 import minimist from 'minimist'
 import { basename, join } from 'path'
 import { rollup } from './src/bundlers/rollup.js'
 import { webpack } from './src/bundlers/webpack.js'
 import { hashObject } from './src/hash.js'
+import { tmpdir } from './src/tmpdir.js'
 
 
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
@@ -98,17 +98,23 @@ async function main(argv) {
     return 2
   }
 
-  const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
-  const testCode = scaffoldTest(exports)
-  const shakenCode = await BUNDLERS[bundler](moduleCode, testCode)
-  const buffer = Buffer.from(shakenCode, 'utf8')
-  const shorthash = hashObject(buffer).slice(0, 6)
-  const tempPath = join(tmpdir(), `${shorthash}_${basename(modulePath)}`)
-  await writeFile(tempPath, buffer)
-  const exitCode = await spiff(tool, modulePath, tempPath)
-  await unlink(tempPath)
+  const tempDir = tmpdir()
+  await mkdir(tempDir)
 
-  return exitCode
+  try {
+    const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
+    const testCode = scaffoldTest(exports)
+    const shakenCode = await BUNDLERS[bundler](moduleCode, testCode)
+    const buffer = Buffer.from(shakenCode, 'utf8')
+    const shorthash = hashObject(buffer).slice(0, 6)
+    const tempPath = join(tempDir, `${shorthash}_${basename(modulePath)}`)
+    await writeFile(tempPath, buffer)
+    const exitCode = await spiff(tool, modulePath, tempPath)
+    return exitCode
+  }
+  finally {
+    await rmdir(tempDir, { recursive: true })
+  }
 }
 
 

@@ -1,5 +1,11 @@
 import { createHash } from 'crypto';
 
+function hash(string) {
+  const hash = createHash('sha1')
+  hash.update(string)
+  return hash.digest('hex')
+}
+
 // Simulates git-hash-object (https://stackoverflow.com/q/552659)
 function hashObject(buffer) {
   const hash = createHash('sha1')
@@ -10,4 +16,4 @@ function hashObject(buffer) {
   return hash.digest('hex')
 }
 
-export { hashObject }
+export { hash, hashObject }
