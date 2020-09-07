@@ -1,23 +1,15 @@
 import { rollup } from 'rollup'
-import virtual from '@rollup/plugin-virtual'
 
-async function bundle(moduleCode, testCode) {
+async function bundle(entryPath, modulePath) {
   const bundle = await rollup({
-    input: 'testCode',
-    plugins: [
-      virtual({
-        moduleCode,
-        testCode
-      })
-    ],
+    input: entryPath,
     treeshake: true
   })
   const { output } = await bundle.generate({
     format: 'esm',
     preserveModules: true
   })
-  const chunk = output.find(chunk => chunk.name == '_virtual:moduleCode')
-
+  const chunk = output.find(chunk => chunk.facadeModuleId == modulePath)
   return chunk.code
 }
 

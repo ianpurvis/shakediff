@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process'
-import { mkdir, readFile, rmdir, writeFile } from 'fs/promises'
+import { mkdir, rmdir, writeFile } from 'fs/promises'
 import minimist from 'minimist'
-import { basename, join } from 'path'
+import { basename, join, resolve } from 'path'
 import { rollup } from './src/bundlers/rollup.js'
 import { webpack } from './src/bundlers/webpack.js'
 import { hashObject } from './src/hash.js'
@@ -68,7 +68,7 @@ async function main(argv) {
 
   const {
     _: [
-      modulePath,
+      moduleFile,
       ...exports
     ],
     help,
@@ -85,8 +85,8 @@ async function main(argv) {
     console.log(HELP)
     return 0
   }
-  else if (!modulePath) {
-    console.error(`shakediff: missing filename\n${ADVICE}`)
+  else if (!moduleFile) {
+    console.error(`shakediff: missing module file\n${ADVICE}`)
     return 2
   }
   else if (exports.length < 1) {
@@ -102,14 +102,21 @@ async function main(argv) {
   await mkdir(tempDir)
 
   try {
-    const moduleCode = await readFile(modulePath, { encoding: 'utf-8' })
-    const testCode = scaffoldTest(exports)
-    const shakenCode = await BUNDLERS[bundler](moduleCode, testCode)
-    const buffer = Buffer.from(shakenCode, 'utf8')
-    const shorthash = hashObject(buffer).slice(0, 6)
-    const tempPath = join(tempDir, `${shorthash}_${basename(modulePath)}`)
-    await writeFile(tempPath, buffer)
-    const exitCode = await spiff(tool, modulePath, tempPath)
+    const modulePath = resolve(moduleFile)
+
+    const entryCode = scaffoldTest(modulePath, exports)
+    const entryBuffer = Buffer.from(entryCode, 'utf8')
+    const entryHash = hashObject(entryBuffer).slice(0, 6)
+    const entryPath = join(tempDir, `${entryHash}_testCode.js`)
+    await writeFile(entryPath, entryBuffer)
+
+    const shakenCode = await BUNDLERS[bundler](entryPath, modulePath)
+    const shakenBuffer = Buffer.from(shakenCode, 'utf8')
+    const shakenHash = hashObject(shakenBuffer).slice(0, 6)
+    const shakenPath = join(tempDir, `${shakenHash}_${basename(modulePath)}`)
+    await writeFile(shakenPath, shakenBuffer)
+
+    const exitCode = await spiff(tool, modulePath, shakenPath)
     return exitCode
   }
   finally {
@@ -155,9 +162,9 @@ function parseArgs(argv) {
 }
 
 
-function scaffoldTest(exports) {
+function scaffoldTest(modulePath, exports) {
   const exportList = exports.join(', ')
-  return `import { ${exportList} } from 'moduleCode'; export { ${exportList} }`
+  return `import { ${exportList} } from '${modulePath}'; export { ${exportList} }`
 }
 
 
