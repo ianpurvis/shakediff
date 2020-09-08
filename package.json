@@ -1,6 +1,6 @@
 {
   "name": "shakediff",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Shake an es6 module for named exports and diff the result",
   "type": "module",
   "main": "shakediff.js",
