@@ -8,7 +8,7 @@ Shake an es6 module for named exports and diff the result.
 
 ## Options:
 
-    -b {rollup|webpack}, --bundler={rollup|webpack}
+    -b {parcel|rollup|webpack}, --bundler={parcel|rollup|webpack}
         Choose a bundler. Default is "rollup".
 
     -t <tool>, --tool=<tool>
