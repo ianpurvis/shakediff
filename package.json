@@ -24,6 +24,9 @@
     "rollup": "^2.26.6",
     "webpack": "^4.44.1"
   },
+  "devDependencies": {
+    "lerna": "^3.22.1"
+  },
   "keywords": [
     "es6",
     "tree-shaking",
