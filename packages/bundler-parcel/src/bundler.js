@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises'
 import Bundler from 'parcel'
 import { join } from 'path'
 
-async function parcel(entryPath, modulePath, tempDir) {
+async function bundle(entryPath, modulePath, tempDir) {
   const bundler = new Bundler(entryPath, {
     autoInstall: false,
     bundleNodeModules: false,
@@ -22,4 +22,4 @@ async function parcel(entryPath, modulePath, tempDir) {
   return chunkCode
 }
 
-export { parcel }
+export default bundle

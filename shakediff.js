@@ -3,7 +3,7 @@
 import { mkdir, rmdir, writeFile } from 'fs/promises'
 import minimist from 'minimist'
 import { basename, join, relative, resolve } from 'path'
-import { parcel } from './src/bundlers/parcel.js'
+import parcel from '@shakediff/bundler-parcel'
 import { rollup } from './src/bundlers/rollup.js'
 import { webpack } from './src/bundlers/webpack.js'
 import { hashObject } from './src/hash.js'
