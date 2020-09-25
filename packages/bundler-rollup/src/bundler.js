@@ -15,4 +15,4 @@ async function bundle(entryPath, modulePath) {
   return chunk.code
 }
 
-export { bundle as rollup }
+export default bundle

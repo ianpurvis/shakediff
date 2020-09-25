@@ -1,0 +1,23 @@
+{
+  "name": "@shakediff/bundler-rollup",
+  "version": "0.4.0",
+  "description": "Rollup bundler for shakediff",
+  "author": "Ian Purvis <ian@purvisresearch.com>",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/bundler.js",
+  "files": [
+    "src/bundler.js"
+  ],
+  "dependencies": {
+    "rollup": "^2.26.6"
+  },
+  "keywords": [
+    "es6",
+    "tree-shaking",
+    "modules",
+    "bundlers",
+    "rollup",
+    "diff"
+  ]
+}

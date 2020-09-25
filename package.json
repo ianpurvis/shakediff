@@ -18,11 +18,13 @@
     "src"
   ],
   "dependencies": {
-    "memory-fs": "^0.5.0",
-    "minimist": "^1.2.5",
-    "parcel": "^1.12.4",
-    "rollup": "^2.26.6",
-    "webpack": "^4.44.1"
+    "minimist": "^1.2.5"
+  },
+  "devDependencies": {
+    "@shakediff/bundler-parcel": "file:packages/bundler-parcel",
+    "@shakediff/bundler-rollup": "file:packages/bundler-rollup",
+    "@shakediff/bundler-webpack": "file:packages/bundler-webpack",
+    "lerna": "^3.22.1"
   },
   "keywords": [
     "es6",
@@ -30,6 +32,8 @@
     "modules",
     "bundlers",
     "rollup",
+    "webpack",
+    "parcel",
     "diff"
   ]
 }

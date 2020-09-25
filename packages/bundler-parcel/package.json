@@ -1,0 +1,23 @@
+{
+  "name": "@shakediff/bundler-parcel",
+  "version": "0.4.0",
+  "description": "Parcel bundler for shakediff",
+  "author": "Ian Purvis <ian@purvisresearch.com>",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/bundler.js",
+  "files": [
+    "src/bundler.js"
+  ],
+  "dependencies": {
+    "parcel": "^1.12.4"
+  },
+  "keywords": [
+    "es6",
+    "tree-shaking",
+    "modules",
+    "bundlers",
+    "parcel",
+    "diff"
+  ]
+}

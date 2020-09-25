@@ -3,20 +3,17 @@
 import { mkdir, rmdir, writeFile } from 'fs/promises'
 import minimist from 'minimist'
 import { basename, join, relative, resolve } from 'path'
-import { parcel } from './src/bundlers/parcel.js'
-import { rollup } from './src/bundlers/rollup.js'
-import { webpack } from './src/bundlers/webpack.js'
+import { load } from './src/bundler.js'
 import { hashObject } from './src/hash.js'
 import { scaffoldEntry } from './src/scaffold.js'
 import { spiff } from './src/spiff.js'
 import { tmpdir } from './src/tmpdir.js'
 
-
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
 const HELP = `
 NAME:
 
-    shakediff - shake an es6 module for named exports and diff the result
+    shakediff - Shake an es6 module for named exports and diff the result
 
 SYNOPSIS:
 
@@ -24,8 +21,24 @@ SYNOPSIS:
 
 OPTIONS:
 
-    -b {parcel|rollup|webpack}, --bundler={parcel|rollup|webpack}
-        Choose a bundler. Default is "rollup".
+    -b {parcel|rollup|webpack|<module>}, --bundler={parcel|rollup|webpack|<module>}
+        Choose a bundler, or use the specified <module>. Default is "rollup".
+
+        Bundlers are not installed by default, please make sure to install one:
+
+            parcel:   @shakediff/bundler-parcel
+            rollup:   @shakediff/bundler-rollup
+            webpack:  @shakediff/bundler-webpack
+
+        Or provide one with an esm import specifier:
+
+            https://nodejs.org/api/esm.html#esm_import_specifiers
+
+        Any module with the following interface can be used:
+
+            export default async function bundle(entryPath, modulePath, tempDir) {
+              return 'bundled module code'
+            }
 
     -t <tool>, --tool=<tool>
         Diff with the specified <tool>. Default is "diff".
@@ -60,11 +73,6 @@ EXAMPLES:
         $ shakediff -t "git diff --no-index --histogram" module.mjs foo
 `.trimStart()
 
-const BUNDLERS = {
-  parcel,
-  rollup,
-  webpack
-}
 
 async function main(argv) {
 
@@ -95,8 +103,12 @@ async function main(argv) {
     console.error(`shakediff: missing export list\n${ADVICE}`)
     return 2
   }
-  else if (!BUNDLERS[bundler]) {
-    console.error(`shakediff: invalid bundler '${bundler}'\n${ADVICE}`)
+
+  let bundle; try {
+    bundle = await load(bundler)
+  }
+  catch(error) {
+    console.error(`shakediff: ${error}\n${ADVICE}`)
     return 2
   }
 
@@ -113,7 +125,7 @@ async function main(argv) {
     const entryPath = join(tempDir, `${entryHash}_entry.js`)
     await writeFile(entryPath, entryBuffer)
 
-    const shakenCode = await BUNDLERS[bundler](entryPath, modulePath, tempDir)
+    const shakenCode = await bundle(entryPath, modulePath, tempDir)
     const shakenBuffer = Buffer.from(shakenCode, 'utf8')
     const shakenHash = hashObject(shakenBuffer).slice(0, 6)
     const shakenPath = join(tempDir, `${shakenHash}_${basename(modulePath)}`)
