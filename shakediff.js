@@ -115,7 +115,7 @@ async function main(argv) {
     const entryPath = join(tempDir, `${entryHash}_entry.js`)
     await writeFile(entryPath, entryBuffer)
 
-    const shakenCode = await BUNDLERS[bundler](entryPath, modulePath)
+    const shakenCode = await BUNDLERS[bundler](entryPath, modulePath, tempDir)
     const shakenBuffer = Buffer.from(shakenCode, 'utf8')
     const shakenHash = hashObject(shakenBuffer).slice(0, 6)
     const shakenPath = join(tempDir, `${shakenHash}_${basename(modulePath)}`)
