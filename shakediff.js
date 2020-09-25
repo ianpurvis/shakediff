@@ -3,14 +3,11 @@
 import { mkdir, rmdir, writeFile } from 'fs/promises'
 import minimist from 'minimist'
 import { basename, join, relative, resolve } from 'path'
-import parcel from '@shakediff/bundler-parcel'
-import rollup from '@shakediff/bundler-rollup'
-import webpack from '@shakediff/bundler-webpack'
+import { load } from './src/bundler.js'
 import { hashObject } from './src/hash.js'
 import { scaffoldEntry } from './src/scaffold.js'
 import { spiff } from './src/spiff.js'
 import { tmpdir } from './src/tmpdir.js'
-
 
 const ADVICE = "shakediff: Try 'shakediff --help' for more information."
 const HELP = `
@@ -60,11 +57,6 @@ EXAMPLES:
         $ shakediff -t "git diff --no-index --histogram" module.mjs foo
 `.trimStart()
 
-const BUNDLERS = {
-  parcel,
-  rollup,
-  webpack
-}
 
 async function main(argv) {
 
@@ -95,8 +87,12 @@ async function main(argv) {
     console.error(`shakediff: missing export list\n${ADVICE}`)
     return 2
   }
-  else if (!BUNDLERS[bundler]) {
-    console.error(`shakediff: invalid bundler '${bundler}'\n${ADVICE}`)
+
+  let bundle; try {
+    bundle = await load(bundler)
+  }
+  catch(error) {
+    console.error(`shakediff: ${error}\n${ADVICE}`)
     return 2
   }
 
@@ -113,7 +109,7 @@ async function main(argv) {
     const entryPath = join(tempDir, `${entryHash}_entry.js`)
     await writeFile(entryPath, entryBuffer)
 
-    const shakenCode = await BUNDLERS[bundler](entryPath, modulePath, tempDir)
+    const shakenCode = await bundle(entryPath, modulePath, tempDir)
     const shakenBuffer = Buffer.from(shakenCode, 'utf8')
     const shakenHash = hashObject(shakenBuffer).slice(0, 6)
     const shakenPath = join(tempDir, `${shakenHash}_${basename(modulePath)}`)
