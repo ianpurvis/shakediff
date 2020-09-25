@@ -14,7 +14,8 @@
     "shakediff": "shakediff.js"
   },
   "files": [
-    "shakediff.js"
+    "shakediff.js",
+    "src"
   ],
   "dependencies": {
     "memory-fs": "^0.5.0",
