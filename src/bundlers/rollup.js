@@ -1,3 +1,4 @@
+import { resolve } from 'path'
 import { rollup } from 'rollup'
 
 async function bundle(entryPath, modulePath) {
@@ -9,7 +10,8 @@ async function bundle(entryPath, modulePath) {
     format: 'esm',
     preserveModules: true
   })
-  const chunk = output.find(chunk => chunk.facadeModuleId == modulePath)
+  const chunk = output.find(chunk =>
+    chunk.facadeModuleId == resolve(modulePath))
   return chunk.code
 }
 
