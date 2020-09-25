@@ -18,11 +18,11 @@
     "src"
   ],
   "dependencies": {
-    "minimist": "^1.2.5",
-    "rollup": "^2.26.6"
+    "minimist": "^1.2.5"
   },
   "devDependencies": {
     "@shakediff/bundler-parcel": "file:packages/bundler-parcel",
+    "@shakediff/bundler-rollup": "file:packages/bundler-rollup",
     "@shakediff/bundler-webpack": "file:packages/bundler-webpack",
     "lerna": "^3.22.1"
   },
@@ -32,6 +32,8 @@
     "modules",
     "bundlers",
     "rollup",
+    "webpack",
+    "parcel",
     "diff"
   ]
 }
