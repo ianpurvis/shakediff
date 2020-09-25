@@ -1,12 +1,8 @@
-import { readFile, rmdir } from 'fs/promises'
+import { readFile } from 'fs/promises'
 import Bundler from 'parcel'
 import { join } from 'path'
-import { tmpdir } from '../tmpdir.js'
 
-async function parcel(entryPath, modulePath) {
-
-  const tempDir = join(tmpdir(), 'parcel')
-
+async function parcel(entryPath, modulePath, tempDir) {
   const bundler = new Bundler(entryPath, {
     autoInstall: false,
     bundleNodeModules: false,
@@ -16,20 +12,14 @@ async function parcel(entryPath, modulePath) {
     hmr: false,
     logLevel: 2,
     minify: true,
-    outDir: tempDir,
+    outDir: join(tempDir, 'dist'),
     scopeHoist: true,
     target: 'node',
     watch: false,
   })
-
-  try {
-    const bundle = await bundler.bundle()
-    const shakenCode = await readFile(bundle.name, { encoding: 'utf8' })
-    return shakenCode
-  }
-  finally {
-    await rmdir(tempDir, { recursive: true })
-  }
+  const bundle = await bundler.bundle()
+  const chunkCode = await readFile(bundle.name, { encoding: 'utf8' })
+  return chunkCode
 }
 
 export { parcel }

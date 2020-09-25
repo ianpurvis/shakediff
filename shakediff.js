@@ -70,7 +70,7 @@ async function main(argv) {
 
   const {
     _: [
-      moduleFile,
+      modulePath,
       ...exports
     ],
     help,
@@ -87,7 +87,7 @@ async function main(argv) {
     console.log(HELP)
     return 0
   }
-  else if (!moduleFile) {
+  else if (!modulePath) {
     console.error(`shakediff: missing module file\n${ADVICE}`)
     return 2
   }
@@ -104,18 +104,16 @@ async function main(argv) {
   await mkdir(tempDir)
 
   try {
-    // Use a relative module path for parcel to bypass its absolute path mapping:
-    const modulePath = bundler === 'parcel'
-      ? relative(tempDir, moduleFile)
-      : resolve(moduleFile)
+    // Node import specifiers may not start with '/'
+    const moduleSpecifier = relative(tempDir, modulePath)
 
-    const entryCode = scaffoldEntry(modulePath, exports)
+    const entryCode = scaffoldEntry(moduleSpecifier, exports)
     const entryBuffer = Buffer.from(entryCode, 'utf8')
     const entryHash = hashObject(entryBuffer).slice(0, 6)
     const entryPath = join(tempDir, `${entryHash}_entry.js`)
     await writeFile(entryPath, entryBuffer)
 
-    const shakenCode = await BUNDLERS[bundler](entryPath, modulePath)
+    const shakenCode = await BUNDLERS[bundler](entryPath, modulePath, tempDir)
     const shakenBuffer = Buffer.from(shakenCode, 'utf8')
     const shakenHash = hashObject(shakenBuffer).slice(0, 6)
     const shakenPath = join(tempDir, `${shakenHash}_${basename(modulePath)}`)
