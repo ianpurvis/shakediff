@@ -13,7 +13,7 @@ const ADVICE = "shakediff: Try 'shakediff --help' for more information."
 const HELP = `
 NAME:
 
-    shakediff - shake an es6 module for named exports and diff the result
+    shakediff - Shake an es6 module for named exports and diff the result
 
 SYNOPSIS:
 
@@ -21,8 +21,24 @@ SYNOPSIS:
 
 OPTIONS:
 
-    -b {parcel|rollup|webpack}, --bundler={parcel|rollup|webpack}
-        Choose a bundler. Default is "rollup".
+    -b {parcel|rollup|webpack|<module>}, --bundler={parcel|rollup|webpack|<module>}
+        Choose a bundler, or use the specified <module>. Default is "rollup".
+
+        Bundlers are not installed by default, please make sure to install one:
+
+            parcel:   @shakediff/bundler-parcel
+            rollup:   @shakediff/bundler-rollup
+            webpack:  @shakediff/bundler-webpack
+
+        Or provide one with an esm import specifier:
+
+            https://nodejs.org/api/esm.html#esm_import_specifiers
+
+        Any module with the following interface can be used:
+
+            export default async function bundle(entryPath, modulePath, tempDir) {
+              return 'bundled module code'
+            }
 
     -t <tool>, --tool=<tool>
         Diff with the specified <tool>. Default is "diff".
