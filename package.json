@@ -18,13 +18,12 @@
     "src"
   ],
   "dependencies": {
-    "memory-fs": "^0.5.0",
     "minimist": "^1.2.5",
-    "rollup": "^2.26.6",
-    "webpack": "^4.44.1"
+    "rollup": "^2.26.6"
   },
   "devDependencies": {
     "@shakediff/bundler-parcel": "file:packages/bundler-parcel",
+    "@shakediff/bundler-webpack": "file:packages/bundler-webpack",
     "lerna": "^3.22.1"
   },
   "keywords": [

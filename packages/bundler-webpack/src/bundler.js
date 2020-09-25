@@ -81,4 +81,4 @@ async function bundle(entryPath, modulePath) {
   return chunkCode
 }
 
-export { bundle as webpack }
+export default bundle
