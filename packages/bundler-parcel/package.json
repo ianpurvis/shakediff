@@ -1,6 +1,6 @@
 {
   "name": "@shakediff/bundler-parcel",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Parcel bundler for shakediff",
   "author": "Ian Purvis <ian@purvisresearch.com>",
   "license": "MIT",
